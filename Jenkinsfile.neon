@@ -1,0 +1,38 @@
+cleanNode('master') {
+    try {
+        stage('Clone') {
+            git 'https://github.com/apachelogger/neon-appstream-health.git'
+        }
+        stage('Bundle') {
+            sh '[ -f Gemfile.lock ] || bundler install --path vendor/bundle'
+        }
+        stage('Test') {
+          try {
+            sh 'bundle exec rake test'
+          } finally {
+            junit 'test/reports/*.xml'
+          }
+        }
+    } catch (e) {
+        stage('Notify') {
+            sh 'env'
+            sh 'IRC_CHANNELS=#kde-neon IRC_NICK=neon-oceanbot bundle exec ./irc_notify FAILURE'
+        }
+        throw e
+    }
+}
+
+def cleanNode(label = null, body) {
+  node(label) {
+    deleteDir()
+    try {
+      wrap([$class: 'AnsiColorBuildWrapper', colorMapName: 'xterm']) {
+        wrap([$class: 'TimestamperBuildWrapper']) {
+          body()
+        }
+      }
+    } finally {
+      step([$class: 'WsCleanup', cleanWhenFailure: true])
+    }
+  }
+}

@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+require 'cinch'
+
+# wrapper
+class Job
+  def self.msg
+    name = ENV.fetch('JOB_NAME')
+    number = ENV.fetch('BUILD_NUMBER')
+    result = ARGV.fetch(0)
+    url = ENV.fetch('BUILD_URL')
+    format('%s build %s: %s %s', name, number, result, url)
+  end
+end
+
+bot = Cinch::Bot.new do
+  configure do |c|
+    c.server = 'irc.freenode.org'
+    c.channels = ENV.fetch('IRC_CHANNELS').split(',')
+    c.nick = ENV.fetch('IRC_NICK', '')
+    if c.nick.empty?
+      c.nicks = ENV.fetch('IRC_NICKS', '').split(',').collect(&:strip)
+    end
+    c.delay_joins = 1 # Wait so we quit actually does something.
+  end
+
+  on :join do |m|
+    m.channel.send(Job.msg, true)
+    (@joined_channels ||= []) << m.channel.name
+    bot.quit if @joined_channels == bot.config.channels
+  end
+end
+
+Thread.new do
+  sleep(30)
+  bot.quit
+end
+bot.loggers.each { |x| x.level = :warn }
+bot.start
