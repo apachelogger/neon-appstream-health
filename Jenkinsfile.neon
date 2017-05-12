@@ -15,8 +15,7 @@ cleanNode('master') {
         }
     } catch (e) {
         stage('Notify') {
-            sh 'env'
-            sh 'IRC_CHANNELS=#kde-neon IRC_NICK=neon-oceanbot bundle exec ./irc_notify FAILURE'
+            sh 'IRC_CHANNELS=#kde-neon IRC_NICK=neon-oceanbot bundle exec ./irc_notify FAILURE &> /dev/null'
         }
         throw e
     }
