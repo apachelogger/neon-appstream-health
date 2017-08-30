@@ -16,7 +16,6 @@ cleanNode('master') {
     } catch (e) {
         stage('Notify') {
         mail to: 'sitter@kde.org',
-             from: 'Neon CI <noreply@kde.org>',
              subject: '[Neon CI] AppStream repository data broken!',
              body: '''The AppStream data of repositories are broken. This needs fixing urgently.
 
