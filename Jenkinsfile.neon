@@ -15,6 +15,11 @@ cleanNode('master') {
         }
     } catch (e) {
         stage('Notify') {
+        mail to: 'sitter@kde.org',
+             subject: '[CI] AppStream repository data broken!',
+             body: '''The AppStream data of repositories are broken. This needs fixing urgently.
+
+${BUILD_URL}/testReport/'''
             sh 'IRC_CHANNELS=#kde-neon IRC_NICK=neon-oceanbot bundle exec ./irc_notify FAILURE &> /dev/null'
         }
         throw e
